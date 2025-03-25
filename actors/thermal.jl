@@ -19,12 +19,15 @@ function make_thermal(prices, ubs)
             @constraint(sp, [t = 1:24], generation[t] <= p_max.in)
 
             Ω = [
-                (price = prices[i], ub = [el.thermal for el in ubs[i]])
-                for i in eachindex(prices)
+                (price = prices[i], ub = [el.thermal for el in ubs[i]]) for
+                i in eachindex(prices)
             ]
             SDDP.parameterize(sp, Ω) do ω
                 @constraint(sp, [t = 1:24], generation[t] <= ω.ub[t])
-                SDDP.@stageobjective(sp, sum(generation[t] * (VOM_THERMAL - ω.price[t]) for t in 1:24))
+                SDDP.@stageobjective(
+                    sp,
+                    sum(generation[t] * (VOM_THERMAL - ω.price[t]) for t = 1:24)
+                )
                 return nothing
             end
         end

@@ -18,13 +18,16 @@ function make_res(αs, prices, ubs)
             @variable(sp, generation[t = 1:24] >= 0)
 
             Ω = [
-                (price = prices[i], ub = [el.res for el in ubs[i]], α = αs[j])
-                for i in eachindex(prices) for j in eachindex(αs)
+                (price = prices[i], ub = [el.res for el in ubs[i]], α = αs[j]) for
+                i in eachindex(prices) for j in eachindex(αs)
             ]
             SDDP.parameterize(sp, Ω) do ω
                 @constraint(sp, [t = 1:24], generation[t] <= ω.α[t] * p_max.in)
                 @constraint(sp, [t = 1:24], generation[t] <= ω.ub[t])
-                SDDP.@stageobjective(sp, sum(generation[t] * (VOM_RES - ω.price[t]) for t in 1:24))
+                SDDP.@stageobjective(
+                    sp,
+                    sum(generation[t] * (VOM_RES - ω.price[t]) for t = 1:24)
+                )
                 return nothing
             end
         end
